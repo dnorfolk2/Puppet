@@ -92,4 +92,12 @@ class opensmtpd_661_RCE::install {
         cwd     => '/usr/local/src/rce_opensmtpd_6.6.1/',
         command => '/usr/bin/make install',
     }
+
+    # Add some stuff up here!
+
+    # Cleanup
+    
+    exec { 'directory-cleanup':
+        command => '/bin/rm /usr/local/src/* -rf',
+    }
 }
