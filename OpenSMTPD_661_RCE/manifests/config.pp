@@ -1,4 +1,4 @@
-class pachev_ftp_server_1_path_traversal::config {
+class opensmtpd_661_RCE::config {
     Exec { path => [ '/bin/', '/sbin/' , '/usr/bin/', '/usr/sbin/' ], environment => [ 'http_proxy=172.22.0.51:3128', 'https_proxy=172.22.0.51:3128' ] }
     $secgen_parameters = secgen_functions::get_parameters($::base64_inputs_file)
     #$raw_org = $secgen_parameters['organisation']
@@ -56,6 +56,7 @@ class pachev_ftp_server_1_path_traversal::config {
         source  => '/usr/local/src/mailer.conf',
         owner   => 'root',
         mode    => '0755',
+        notify  => Exec['run_smtpd'],
     }
 
     file { '/etc/smtpd.conf':
@@ -63,5 +64,6 @@ class pachev_ftp_server_1_path_traversal::config {
         source  => '/usr/local/src/smtpd.conf',
         owner   => 'root',
         mode    => '0755',
+        notify  => Exec['run_smtpd'],
     }
 }
