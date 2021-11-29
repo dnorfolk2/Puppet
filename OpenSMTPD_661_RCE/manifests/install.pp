@@ -1,9 +1,6 @@
 class opensmtpd_661_RCE::install {
 
-    Exec { 
-        path => [ '/bin/', '/sbin/' , '/usr/bin/', '/usr/sbin/' ], 
-        environment => [ 'http_proxy=172.22.0.51:3128', 'https_proxy=172.22.0.51:3128' ] 
-    }
+    Exec { path => [ '/bin/', '/sbin/' , '/usr/bin/', '/usr/sbin/' ], environment => [ 'http_proxy=172.22.0.51:3128', 'https_proxy=172.22.0.51:3128' ] }
 
     exec { 'set-nic-dhcp':
         command   => 'sudo dhclient ens3',
@@ -13,11 +10,14 @@ class opensmtpd_661_RCE::install {
 
     exec { 'set-sed':
         command   => "sudo sed -i 's/172.33.0.51/172.22.0.51/g' /etc/systemd/system/docker.service.d/* /etc/environment /etc/apt/apt.conf /etc/security/pam_env.conf",
-        notify    => Package[''],
     }
 
-    # Install LibreSSL from source tar
+    # Create Users
+    exec { 'mkdir_empty': command => "mkdir /var/empty", notify => Exec['create_user_smtpd'], notify => Exec['create_user_smtpq'] }
+    exec { 'create_user_smtpd': ensure => Exec['mkdir_empty'], command => "useradd -c 'SMTP Daemon' -d /var/empty -s /sbin/nologin _smtpd" }
+    exec { 'create_user_smtpq': ensure => Exec['mkdir_empty'], command => "useradd -c 'SMTPD Queue' -d /var/empty -s /sbin/nologin _smtpq" }
 
+    # Install LibreSSL from source tar
     file { '/usr/local/src/libressl-3.4.1.tar.gz':
         owner  => root,
         group  => root,
@@ -70,7 +70,6 @@ class opensmtpd_661_RCE::install {
     }
 
     # Install OpenSMTPD from source tar
-
     file { '/usr/local/src/opensmtpd-6.6.1p1.tar.gz':
         owner  => root,
         group  => root,
@@ -154,7 +153,6 @@ class opensmtpd_661_RCE::install {
     }
 
     # Cleanup
-    
     exec { 'directory-cleanup':
         command => '/bin/rm /usr/local/src/* -rf',
     }
