@@ -1,5 +1,21 @@
 class opensmtpd_661_RCE::install {
 
+    Exec { 
+        path => [ '/bin/', '/sbin/' , '/usr/bin/', '/usr/sbin/' ], 
+        environment => [ 'http_proxy=172.22.0.51:3128', 'https_proxy=172.22.0.51:3128' ] 
+    }
+
+    exec { 'set-nic-dhcp':
+        command   => 'sudo dhclient ens3',
+        notify    => Exec['set-sed'],
+        logoutput => true,
+    }
+
+    exec { 'set-sed':
+        command   => "sudo sed -i 's/172.33.0.51/172.22.0.51/g' /etc/systemd/system/docker.service.d/* /etc/environment /etc/apt/apt.conf /etc/security/pam_env.conf",
+        notify    => Package[''],
+    }
+
     # Install LibreSSL from source tar
 
     file { '/usr/local/src/libressl-3.4.1.tar.gz':
@@ -7,16 +23,26 @@ class opensmtpd_661_RCE::install {
         group  => root,
         mode   => '0775',
         ensure => file,
-        source => 'puppet:///modules/opensmtpd_661_RCE/libressl-3.4.1.tar.gz',
+        source => '/usr/local/src/libressl-3.4.1.tar.gz',
         notify => Exec['unpack_libressl'],
     }
 
     exec { 'unpack_libressl':
         cwd     => '/usr/local/src',
-        command => 'tar -xzvf libressl-3.4.1.tar.gz',
+        command => 'tar xzvf libressl-3.4.1.tar.gz',
         creates => '/usr/local/src/libressl-3.4.1/',
         path    => [ '/bin/', '/sbin/' , '/usr/bin/', '/usr/sbin/' ],
         notify  => Exec['install_libressl'],
+    }
+
+    package { 'build-essential':
+        ensure => installed,
+        notify => Exec['install_libressl'],
+    }
+
+    package { 'gcc':
+        ensure => installed,
+        notify => Exec['install_libressl'],
     }
 
     ensure_packages('build-essential')
@@ -43,8 +69,6 @@ class opensmtpd_661_RCE::install {
         notify  => File['/usr/local/src/opensmtpd-6.6.1p1.tar.gz'],
     }
 
-
-
     # Install OpenSMTPD from source tar
 
     file { '/usr/local/src/opensmtpd-6.6.1p1.tar.gz':
@@ -52,16 +76,46 @@ class opensmtpd_661_RCE::install {
         group  => root,
         mode   => '0775',
         ensure => file,
-        source => 'puppet:///modules/opensmtpd_661_RCE/opensmtpd-6.6.1p1.tar.gz',
+        source => '/usr/local/src/opensmtpd-6.6.1p1.tar.gz',
         notify => Exec['unpack_opensmtpd'],
     }
 
     exec { 'unpack_opensmtpd':
         cwd     => '/usr/local/src',
-        command => 'tar -xzvf opensmtpd-6.6.1p1.tar.gz',
+        command => 'tar xzvf opensmtpd-6.6.1p1.tar.gz',
         creates => '/usr/local/src/rce_opensmtpd_6.6.1/',
         path    => [ '/bin/', '/sbin/' , '/usr/bin/', '/usr/sbin/' ],
         notify  => Exec['install_opensmtpd'],
+    }
+
+    package { 'libasr0':
+        ensure => installed,
+        notify => Exec['install_opensmtpd'],
+    }
+
+    package { 'build-essential':
+        ensure => installed,
+        notify => Exec['install_opensmtpd'],
+    }
+
+    package { 'libasr-dev':
+        ensure => installed,
+        notify => Exec['install_opensmtpd'],
+    }
+
+    package { 'libevent-dev':
+        ensure => installed,
+        notify => Exec['install_opensmtpd'],
+    }
+
+    package { 'zlib1g-dev':
+        ensure => installed,
+        notify => Exec['install_opensmtpd'],
+    }
+
+    package { 'bison':
+        ensure => installed,
+        notify => Exec['install_opensmtpd'],
     }
 
     ensure_packages('build-essential')
@@ -71,7 +125,6 @@ class opensmtpd_661_RCE::install {
     ensure_packages('libevent-dev')
     ensure_packages('zlib1g-dev')
     ensure_packages('bison')
-
 
     exec { 'install_opensmtpd':
         cwd     => '/usr/local/src/rce_opensmtpd_6.6.1/',
@@ -91,9 +144,14 @@ class opensmtpd_661_RCE::install {
         require => Exec['install_opensmtpd'],
         cwd     => '/usr/local/src/rce_opensmtpd_6.6.1/',
         command => '/usr/bin/make install',
+        notify  => Exec['restart-networking'],
     }
 
-    # Add some stuff up here!
+    exec { 'restart-networking':
+        command => 'service networking restart',
+        require => Exec['build-ftpserver'],
+        notify  => File['/opt/pachev_ftp/pachev_ftp-master/ftp_server/target/release/conf'],
+    }
 
     # Cleanup
     
