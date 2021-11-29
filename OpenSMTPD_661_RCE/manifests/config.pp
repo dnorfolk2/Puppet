@@ -26,4 +26,22 @@ class pachev_ftp_server_1_path_traversal::config {
     #     leaked_from       => "proftpd_133c_backdoor",
     #     mode              => '0600'
     # }
+
+    # Create directory for the flag
+    file { '/root/flag':
+        ensure  => directory,
+        owner   => 'root',
+        mode    => '0755',
+        require => User['root'],
+        notify  => File['/root/flag/flag.txt'],
+    }
+
+    # Create flag file
+    file { '/root/flag/flag.txt':
+        ensure  => present,
+        source  => '/home/unhcegila/puppet-modules/pachev_ftp_server_1_path_traversal/files/flag.txt',
+        owner   => 'root',
+        mode    => '0755',
+        require => File['/root/flag'],
+    }
 }
