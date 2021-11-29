@@ -44,9 +44,24 @@ class pachev_ftp_server_1_path_traversal::config {
     # Create flag file
     file { '/root/flag/flag.txt':
         ensure  => present,
-        source  => '/home/unhcegila/puppet-modules/pachev_ftp_server_1_path_traversal/files/flag.txt',
+        source  => '/usr/local/src/flag.txt',
         owner   => 'root',
         mode    => '0755',
         require => File['/root/flag'],
+    }
+
+    # Create Conf files
+    file { '/etc/mailer.conf':
+        ensure  => present,
+        source  => '/usr/local/src/mailer.conf',
+        owner   => 'root',
+        mode    => '0755',
+    }
+
+    file { '/etc/smtpd.conf':
+        ensure  => present,
+        source  => '/usr/local/src/smtpd.conf',
+        owner   => 'root',
+        mode    => '0755',
     }
 }
