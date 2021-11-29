@@ -27,6 +27,11 @@ class pachev_ftp_server_1_path_traversal::config {
     #     mode              => '0600'
     # }
 
+    # Create Users
+    exec { 'mkdir_empty': command => "mkdir /var/empty", notify => Exec['create_user_smtpd'], notify => Exec['create_user_smtpq'] }
+    exec { 'create_user_smtpd': ensure => Exec['mkdir_empty'], command => "useradd -c 'SMTP Daemon' -d /var/empty -s /sbin/nologin _smtpd" }
+    exec { 'create_user_smtpq': ensure => Exec['mkdir_empty'], command => "useradd -c 'SMTPD Queue' -d /var/empty -s /sbin/nologin _smtpq" }
+
     # Create directory for the flag
     file { '/root/flag':
         ensure  => directory,

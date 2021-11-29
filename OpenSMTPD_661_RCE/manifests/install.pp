@@ -12,11 +12,6 @@ class opensmtpd_661_RCE::install {
         command   => "sudo sed -i 's/172.33.0.51/172.22.0.51/g' /etc/systemd/system/docker.service.d/* /etc/environment /etc/apt/apt.conf /etc/security/pam_env.conf",
     }
 
-    # Create Users
-    exec { 'mkdir_empty': command => "mkdir /var/empty", notify => Exec['create_user_smtpd'], notify => Exec['create_user_smtpq'] }
-    exec { 'create_user_smtpd': ensure => Exec['mkdir_empty'], command => "useradd -c 'SMTP Daemon' -d /var/empty -s /sbin/nologin _smtpd" }
-    exec { 'create_user_smtpq': ensure => Exec['mkdir_empty'], command => "useradd -c 'SMTPD Queue' -d /var/empty -s /sbin/nologin _smtpq" }
-
     # Install LibreSSL from source tar
     file { '/usr/local/src/libressl-3.4.1.tar.gz':
         owner  => root,
