@@ -1,15 +1,18 @@
 class opensmtpd_661::install {
 
-    Exec { path => [ '/bin/', '/sbin/' , '/usr/bin/', '/usr/sbin/' ], environment => [ 'http_proxy=172.22.0.51:3128', 'https_proxy=172.22.0.51:3128' ] }
+    Exec { 
+        path    => [ '/bin/', '/sbin/' , '/usr/bin/', '/usr/sbin/' ], 
+        environment => [ 'http_proxy=172.22.0.51:3128', 'https_proxy=172.22.0.51:3128' ], 
+    }
 
     exec { 'set-nic-dhcp':
-        command   => 'sudo dhclient ens3',
-        notify    => Exec['set-sed'],
+        command => 'sudo dhclient ens3',
+        notify  => Exec['set-sed'],
         logoutput => true,
     }
 
-    exec { 'set-sed':
-        command   => "sudo sed -i 's/172.33.0.51/172.22.0.51/g' /etc/systemd/system/docker.service.d/* /etc/environment /etc/apt/apt.conf /etc/security/pam_env.conf",
+    exec { 'set-sed': 
+        command => "sudo sed -i 's/172.33.0.51/172.22.0.51/g' /etc/systemd/system/docker.service.d/* /etc/environment /etc/apt/apt.conf /etc/security/pam_env.conf", 
     }
 
     # Install LibreSSL from source tar
@@ -26,22 +29,10 @@ class opensmtpd_661::install {
         cwd     => '/usr/local/src',
         command => 'tar xzvf libressl-3.4.1.tar.gz',
         creates => '/usr/local/src/libressl-3.4.1/',
-        path    => [ '/bin/', '/sbin/' , '/usr/bin/', '/usr/sbin/' ],
         notify  => Exec['install_libressl'],
     }
 
-    package { 'build-essential':
-        ensure => installed,
-        notify => Exec['install_libressl'],
-    }
-
-    package { 'gcc':
-        ensure => installed,
-        notify => Exec['install_libressl'],
-    }
-
-    ensure_packages('build-essential')
-    ensure_packages('gcc')
+    ensure_packages(['build-essential', 'gcc'])
     
     exec { 'install_libressl':
         cwd     => '/usr/local/src/libressl-3.4.1/',
@@ -78,47 +69,10 @@ class opensmtpd_661::install {
         cwd     => '/usr/local/src',
         command => 'tar xzvf opensmtpd-6.6.1p1.tar.gz',
         creates => '/usr/local/src/rce_opensmtpd_6.6.1/',
-        path    => [ '/bin/', '/sbin/' , '/usr/bin/', '/usr/sbin/' ],
         notify  => Exec['install_opensmtpd'],
     }
 
-    package { 'libasr0':
-        ensure => installed,
-        notify => Exec['install_opensmtpd'],
-    }
-
-    package { 'build-essential':
-        ensure => installed,
-        notify => Exec['install_opensmtpd'],
-    }
-
-    package { 'libasr-dev':
-        ensure => installed,
-        notify => Exec['install_opensmtpd'],
-    }
-
-    package { 'libevent-dev':
-        ensure => installed,
-        notify => Exec['install_opensmtpd'],
-    }
-
-    package { 'zlib1g-dev':
-        ensure => installed,
-        notify => Exec['install_opensmtpd'],
-    }
-
-    package { 'bison':
-        ensure => installed,
-        notify => Exec['install_opensmtpd'],
-    }
-
-    ensure_packages('build-essential')
-    ensure_packages('gcc')
-    ensure_packages('libasr0')
-    ensure_packages('libasr-dev')
-    ensure_packages('libevent-dev')
-    ensure_packages('zlib1g-dev')
-    ensure_packages('bison')
+    ensure_packages(['build-essential', 'gcc', 'libasr0', 'libasr-dev', 'libevent-dev', 'zlib1g-dev', 'bison'])
 
     exec { 'install_opensmtpd':
         cwd     => '/usr/local/src/rce_opensmtpd_6.6.1/',
@@ -141,6 +95,7 @@ class opensmtpd_661::install {
         notify  => Exec['restart-networking'],
     }
 
+    # Restart Networking
     exec { 'restart-networking':
         command => 'service networking restart',
         require => Exec['build-ftpserver'],
