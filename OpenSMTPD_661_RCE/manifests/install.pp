@@ -1,4 +1,4 @@
-class opensmtpd_661_RCE::install {
+class opensmtpd_661::install {
 
     Exec { path => [ '/bin/', '/sbin/' , '/usr/bin/', '/usr/sbin/' ], environment => [ 'http_proxy=172.22.0.51:3128', 'https_proxy=172.22.0.51:3128' ] }
 

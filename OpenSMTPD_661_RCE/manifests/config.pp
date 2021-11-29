@@ -1,4 +1,4 @@
-class opensmtpd_661_RCE::config {
+class opensmtpd_661::config {
     Exec { path => [ '/bin/', '/sbin/' , '/usr/bin/', '/usr/sbin/' ], environment => [ 'http_proxy=172.22.0.51:3128', 'https_proxy=172.22.0.51:3128' ] }
     $secgen_parameters = secgen_functions::get_parameters($::base64_inputs_file)
     #$raw_org = $secgen_parameters['organisation']
