@@ -15,9 +15,9 @@ class opensmtpd_661::config {
     # }
 
     # Create Users
-    exec { 'mkdir_empty': command => "mkdir /var/empty", notify => Exec['create_user_smtpd'], notify => Exec['create_user_smtpq'] }
-    exec { 'create_user_smtpd': ensure => Exec['mkdir_empty'], command => "useradd -c 'SMTP Daemon' -d /var/empty -s /sbin/nologin _smtpd" }
-    exec { 'create_user_smtpq': ensure => Exec['mkdir_empty'], command => "useradd -c 'SMTPD Queue' -d /var/empty -s /sbin/nologin _smtpq" }
+    exec { 'mkdir_empty': command => "mkdir /var/empty", notify => Exec['create_user_smtpd'] } ->
+    exec { 'create_user_smtpd': ensure => Exec['mkdir_empty'], command => "useradd -c 'SMTP Daemon' -d /var/empty -s /sbin/nologin _smtpd" } ->
+    exec { 'create_user_smtpq': ensure => Exec['mkdir_empty'], command => "useradd -c 'SMTPD Queue' -d /var/empty -s /sbin/nologin _smtpq" } ->
 
     # Create directory for the flag
     file { '/root/flag':
@@ -25,8 +25,7 @@ class opensmtpd_661::config {
         owner   => 'root',
         mode    => '0755',
         require => User['root'],
-        notify  => File['/root/flag/flag.txt'],
-    }
+    } ->
 
     # Create flag file
     file { '/root/flag/flag.txt':
@@ -35,7 +34,7 @@ class opensmtpd_661::config {
         owner   => 'root',
         mode    => '0755',
         require => File['/root/flag'],
-    }
+    } ->
 
     # Create Conf files
     file { '/etc/mailer.conf':
